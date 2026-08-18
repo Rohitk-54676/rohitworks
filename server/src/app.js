@@ -20,6 +20,7 @@ import contactMessagesRoutes from "./routes/contact-messages.routes.js";
 import notFoundMiddleware from "./middleware/not-found.middleware.js";
 import errorMiddleware from "./middleware/error.middleware.js";
 
+import integrationsRoutes from "./routes/integrations.routes.js";
 const app = express();
 
 app.use(helmet());
@@ -55,6 +56,8 @@ app.use("/api/social-links", socialLinksRoutes);
 app.use("/api/site-settings", siteSettingsRoutes);
 app.use("/api/contact", contactMessagesRoutes);
 
+
+app.use("/api/integrations", integrationsRoutes);
 /*
  * Error handling
  */

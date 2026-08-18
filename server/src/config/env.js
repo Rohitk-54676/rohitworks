@@ -11,6 +11,8 @@ const requiredEnv = [
   "CLOUDINARY_CLOUD_NAME",
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
+  "GITHUB_USERNAME",
+  "GITHUB_TOKEN",
 ];
 
 for (const key of requiredEnv) {
@@ -38,6 +40,13 @@ const env = {
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
     apiKey: process.env.CLOUDINARY_API_KEY,
     apiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
+  github: {
+  username: process.env.GITHUB_USERNAME,
+  token: process.env.GITHUB_TOKEN,
+  },
+  leetcode: {
+  username: process.env.LEETCODE_USERNAME,
   },
 };
 
