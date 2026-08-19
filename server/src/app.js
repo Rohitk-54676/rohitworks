@@ -21,6 +21,8 @@ import notFoundMiddleware from "./middleware/not-found.middleware.js";
 import errorMiddleware from "./middleware/error.middleware.js";
 
 import integrationsRoutes from "./routes/integrations.routes.js";
+
+import chatRoutes from "./routes/chat.routes.js";
 const app = express();
 
 app.use(helmet());
@@ -41,6 +43,8 @@ app.use(cookieParser());
 
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/chat", chatRoutes);
+
 
 /*
  * Content APIs

@@ -13,6 +13,8 @@ const requiredEnv = [
   "CLOUDINARY_API_SECRET",
   "GITHUB_USERNAME",
   "GITHUB_TOKEN",
+  "OPENROUTER_API_KEY",
+  "OPENROUTER_MODEL",
 ];
 
 for (const key of requiredEnv) {
@@ -47,6 +49,10 @@ const env = {
   },
   leetcode: {
   username: process.env.LEETCODE_USERNAME,
+  },
+  openRouter: {
+  apiKey: process.env.OPENROUTER_API_KEY,
+  model: process.env.OPENROUTER_MODEL,
   },
 };
 
