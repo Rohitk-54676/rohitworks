@@ -53,6 +53,9 @@ const validateContactMessage = (data = {}) => {
 
   if (!isNonEmptyString(data.message)) {
     errors.message = "Message is required";
+  } else if (data.message.trim().length > 5000) {
+    errors.message =
+      "Message must not exceed 5000 characters";
   }
 
   return {

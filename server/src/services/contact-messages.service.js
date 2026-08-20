@@ -1,4 +1,5 @@
 import pool from "../db/pool.js";
+import emailService from "./email.service.js";
 
 const getContactMessages = async ({ unreadOnly = false } = {}) => {
   const values = [];
@@ -63,8 +64,23 @@ const createContactMessage = async (data) => {
 
   const { rows } = await pool.query(query, values);
 
-  return rows[0];
+  const contactMessage = rows[0];
+
+  const notificationResult =
+    await emailService.sendContactNotification({
+      name: contactMessage.name,
+      email: contactMessage.email,
+      subject: contactMessage.subject,
+      message: contactMessage.message,
+    });
+
+  return {
+    contactMessage,
+    notificationSent: notificationResult.success,
+  };
 };
+
+
 
 const markContactMessageRead = async (id, isRead) => {
   const query = `

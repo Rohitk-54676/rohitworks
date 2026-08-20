@@ -36,14 +36,14 @@ const createContactMessage = async (req, res, next) => {
       });
     }
 
-    const contactMessage =
+    const result =
       await contactMessagesService.createContactMessage(
         req.body
       );
 
     return res.status(201).json({
       success: true,
-      data: contactMessage,
+      data: result.contactMessage,
     });
   } catch (error) {
     next(error);

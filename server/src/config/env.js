@@ -15,6 +15,9 @@ const requiredEnv = [
   "GITHUB_TOKEN",
   "OPENROUTER_API_KEY",
   "OPENROUTER_MODEL",
+  "RESEND_API_KEY",
+  "NOTIFICATION_EMAIL",
+  "EMAIL_FROM",
 ];
 
 for (const key of requiredEnv) {
@@ -53,6 +56,11 @@ const env = {
   openRouter: {
   apiKey: process.env.OPENROUTER_API_KEY,
   model: process.env.OPENROUTER_MODEL,
+  },
+  email: {
+  resendApiKey: process.env.RESEND_API_KEY,
+  notificationEmail: process.env.NOTIFICATION_EMAIL,
+  from: process.env.EMAIL_FROM,
   },
 };
 

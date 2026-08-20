@@ -2,6 +2,7 @@ import express from "express";
 
 import contactMessagesController from "../controllers/contact-messages.controller.js";
 import requireAdmin from "../middleware/require-admin.middleware.js";
+import contactRateLimit from "../middleware/contact-rate-limit.middleware.js";
 
 const router = express.Router();
 
@@ -11,6 +12,7 @@ const router = express.Router();
 
 router.post(
   "/",
+  contactRateLimit,
   contactMessagesController.createContactMessage
 );
 
