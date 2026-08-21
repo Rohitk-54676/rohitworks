@@ -1,22 +1,22 @@
 import pool from "../db/pool.js";
-import cloudinaryService from "./cloudinary.service.js";
+import { v2 as cloudinary } from "cloudinary";
+
+import env from "../config/env.js";
+
+cloudinary.config({
+  cloud_name: env.cloudinary.cloudName,
+  api_key: env.cloudinary.apiKey,
+  api_secret: env.cloudinary.apiSecret,
+});
 
 const uploadResume = async (file) => {
-  /*
-   * Get the existing resume reference.
-   *
-   * site_settings is a singleton and uses id = 1.
-   */
-  const settingsResult = await pool.query(
-    `
-      SELECT
-        id,
-        resume_url,
-        resume_public_id
-      FROM site_settings
-      WHERE id = 1;
-    `
-  );
+  const settingsResult = await pool.query(`
+    SELECT
+      id,
+      resume_public_id
+    FROM site_settings
+    WHERE id = 1;
+  `);
 
   if (settingsResult.rows.length === 0) {
     return null;
@@ -27,23 +27,19 @@ const uploadResume = async (file) => {
   let newCloudinaryAsset;
 
   try {
-    /*
-     * Upload the new resume first.
-     *
-     * PDFs are stored by Cloudinary as raw resources.
-     */
-    newCloudinaryAsset =
-      await cloudinaryService.uploadBuffer(
-        file.buffer,
-        {
-          folder: "portfolio/resume",
-          resourceType: "raw",
-        }
-      );
+    const base64File = file.buffer.toString("base64");
 
-    /*
-     * Update PostgreSQL with the new Cloudinary reference.
-     */
+    const dataUri =
+      `data:application/pdf;base64,${base64File}`;
+
+    newCloudinaryAsset =
+      await cloudinary.uploader.upload(dataUri, {
+        resource_type: "raw",
+        folder: "portfolio/resume",
+        public_id: `resume-${Date.now()}.pdf`,
+        overwrite: false,
+      });
+
     const updateResult = await pool.query(
       `
         UPDATE site_settings
@@ -54,8 +50,17 @@ const uploadResume = async (file) => {
         WHERE id = 1
         RETURNING
           id,
+          name,
+          headline,
+          bio,
+          email,
+          location,
+          availability_status,
+          profile_image_url,
+          profile_image_public_id,
           resume_url,
           resume_public_id,
+          current_focus,
           updated_at;
       `,
       [
@@ -65,65 +70,43 @@ const uploadResume = async (file) => {
     );
 
     if (updateResult.rows.length === 0) {
-      /*
-       * Database update failed.
-       *
-       * Remove the newly uploaded Cloudinary asset.
-       */
-      await cloudinaryService.deleteAsset(
+      await cloudinary.uploader.destroy(
         newCloudinaryAsset.public_id,
         {
-          resourceType: "raw",
+          resource_type: "raw",
+          invalidate: true,
         }
       );
 
       return null;
     }
 
-    /*
-     * PostgreSQL now points to the new resume.
-     *
-     * Delete the old resume from Cloudinary if one existed.
-     */
     if (settings.resume_public_id) {
       try {
-        await cloudinaryService.deleteAsset(
+        await cloudinary.uploader.destroy(
           settings.resume_public_id,
           {
-            resourceType: "raw",
+            resource_type: "raw",
+            invalidate: true,
           }
         );
-      } catch (cleanupError) {
-        /*
-         * New resume is already active.
-         *
-         * The old Cloudinary asset is now orphaned.
-         */
+      } catch (error) {
         console.error(
-          "Resume updated but old Cloudinary asset could not be deleted:",
-          {
-            oldCloudinaryPublicId:
-              settings.resume_public_id,
-            newCloudinaryPublicId:
-              newCloudinaryAsset.public_id,
-            error: cleanupError,
-          }
+          "Old resume could not be deleted:",
+          error
         );
       }
     }
 
     return updateResult.rows[0];
   } catch (error) {
-    /*
-     * If Cloudinary upload succeeded but PostgreSQL failed,
-     * remove the newly uploaded asset.
-     */
     if (newCloudinaryAsset?.public_id) {
       try {
-        await cloudinaryService.deleteAsset(
+        await cloudinary.uploader.destroy(
           newCloudinaryAsset.public_id,
           {
-            resourceType: "raw",
+            resource_type: "raw",
+            invalidate: true,
           }
         );
       } catch (cleanupError) {
@@ -139,18 +122,13 @@ const uploadResume = async (file) => {
 };
 
 const deleteResume = async () => {
-  /*
-   * Get the current resume reference.
-   */
-  const settingsResult = await pool.query(
-    `
-      SELECT
-        id,
-        resume_public_id
-      FROM site_settings
-      WHERE id = 1;
-    `
-  );
+  const settingsResult = await pool.query(`
+    SELECT
+      id,
+      resume_public_id
+    FROM site_settings
+    WHERE id = 1;
+  `);
 
   if (settingsResult.rows.length === 0) {
     return null;
@@ -158,9 +136,6 @@ const deleteResume = async () => {
 
   const settings = settingsResult.rows[0];
 
-  /*
-   * No resume currently exists.
-   */
   if (!settings.resume_public_id) {
     return {
       id: settings.id,
@@ -168,39 +143,27 @@ const deleteResume = async () => {
     };
   }
 
-  /*
-   * Remove the database reference first.
-   */
-  await pool.query(
-    `
-      UPDATE site_settings
-      SET
-        resume_url = NULL,
-        resume_public_id = NULL,
-        updated_at = NOW()
-      WHERE id = 1;
-    `,
-    []
-  );
+  await pool.query(`
+    UPDATE site_settings
+    SET
+      resume_url = NULL,
+      resume_public_id = NULL,
+      updated_at = NOW()
+    WHERE id = 1;
+  `);
 
-  /*
-   * Remove the Cloudinary raw asset.
-   */
   try {
-    await cloudinaryService.deleteAsset(
+    await cloudinary.uploader.destroy(
       settings.resume_public_id,
       {
-        resourceType: "raw",
+        resource_type: "raw",
+        invalidate: true,
       }
     );
   } catch (error) {
     console.error(
-      "Resume removed from database but Cloudinary deletion failed:",
-      {
-        cloudinaryPublicId:
-          settings.resume_public_id,
-        error,
-      }
+      "Cloudinary resume deletion failed:",
+      error
     );
 
     throw error;

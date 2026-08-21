@@ -22,18 +22,10 @@ const uploadBuffer = (buffer, options = {}) => {
       public_id: options.publicId,
       overwrite: options.overwrite ?? false,
 
-      /*
-       * We generate Cloudinary public IDs ourselves.
-       * This prevents client filenames from influencing
-       * the Cloudinary asset path.
-       */
-      use_filename: false,
-      unique_filename: true,
+      use_filename: options.useFilename ?? false,
+      unique_filename: options.uniqueFilename ?? true,
     };
 
-    /*
-     * Don't send undefined options to Cloudinary.
-     */
     if (!uploadOptions.folder) {
       delete uploadOptions.folder;
     }

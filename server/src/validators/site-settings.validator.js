@@ -7,7 +7,11 @@ const isOptionalString = (value) => {
 };
 
 const isValidUrl = (value) => {
-  if (value === undefined || value === null || value === "") {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
     return true;
   }
 
@@ -24,7 +28,11 @@ const isValidUrl = (value) => {
 };
 
 const isValidEmail = (value) => {
-  if (value === undefined || value === null || value === "") {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
     return true;
   }
 
@@ -32,7 +40,9 @@ const isValidEmail = (value) => {
     return false;
   }
 
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    value
+  );
 };
 
 const validateSiteSettings = (data = {}) => {
@@ -57,7 +67,8 @@ const validateSiteSettings = (data = {}) => {
       data[field] !== undefined &&
       !isOptionalString(data[field])
     ) {
-      errors[field] = `${field} must be a string`;
+      errors[field] =
+        `${field} must be a string`;
     }
   }
 
@@ -73,7 +84,8 @@ const validateSiteSettings = (data = {}) => {
     typeof data.name === "string" &&
     data.name.length > 200
   ) {
-    errors.name = "Name must not exceed 200 characters";
+    errors.name =
+      "Name must not exceed 200 characters";
   }
 
   if (
@@ -101,7 +113,8 @@ const validateSiteSettings = (data = {}) => {
   }
 
   if (!isValidEmail(data.email)) {
-    errors.email = "Email must be a valid email address";
+    errors.email =
+      "Email must be a valid email address";
   }
 
   if (!isValidUrl(data.profile_image_url)) {
@@ -110,11 +123,13 @@ const validateSiteSettings = (data = {}) => {
   }
 
   if (!isValidUrl(data.resume_url)) {
-    errors.resume_url = "Resume URL must be a valid URL";
+    errors.resume_url =
+      "Resume URL must be a valid URL";
   }
 
   return {
-    isValid: Object.keys(errors).length === 0,
+    isValid:
+      Object.keys(errors).length === 0,
     errors,
   };
 };
