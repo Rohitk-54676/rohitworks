@@ -5,6 +5,8 @@ import {
   Routes,
 } from "react-router-dom";
 
+import ScrollToTop from "./components/common/ScrollToTop";
+import HomePage from "./pages/public/HomePage";
 import AdminLayout from "./layouts/AdminLayout";
 import DashboardPage from "./pages/admin/DashboardPage";
 import ProjectsPage from "./pages/admin/ProjectsPage";
@@ -18,10 +20,13 @@ import MessagesPage from "./pages/admin/MessagesPage";
 import SiteSettingsPage from "./pages/admin/SiteSettingsPage";
 import AdminLoginPage from "./pages/auth/AdminLoginPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import Chatbot from "./components/common/Chatbot";
+import ProjectDetailsPage from "./pages/public/ProjectDetailsPage";
 
 function App() {
   return (
     <BrowserRouter>
+     <ScrollToTop />
       <Routes>
         {/* ================================
             PUBLIC APPLICATION
@@ -29,15 +34,12 @@ function App() {
 
         <Route
           path="/"
-          element={
-            <div className="flex min-h-screen items-center justify-center">
-              <h1 className="text-3xl font-semibold">
-                Portfolio
-              </h1>
-            </div>
-          }
+          element={<HomePage/>}
         />
-
+        <Route
+          path="/projects/:slug"
+          element={<ProjectDetailsPage />}
+        />
         {/* ================================
             ADMIN AUTHENTICATION
         ================================= */}
@@ -122,6 +124,7 @@ function App() {
           element={<Navigate to="/" replace />}
         />
       </Routes>
+      <Chatbot />
     </BrowserRouter>
   );
 }

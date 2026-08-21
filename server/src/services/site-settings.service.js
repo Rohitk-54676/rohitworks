@@ -81,7 +81,6 @@ const updateSiteSettings = async (data) => {
 
   const { rows } = await pool.query(query, values);
 
-  console.log("Updated site settings rows:", rows);
 
   return rows[0] || null;
 };
