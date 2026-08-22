@@ -1,7 +1,6 @@
 import {
   Award,
   BriefcaseBusiness,
-  ChevronLeft,
   Code2,
   FolderKanban,
   GraduationCap,

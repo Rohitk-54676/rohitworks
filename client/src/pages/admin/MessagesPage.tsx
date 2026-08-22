@@ -4,7 +4,6 @@ import { AxiosError } from "axios";
 
 import {
   Check,
-  ChevronLeft,
   Mail,
   MailOpen,
   RefreshCcw,
