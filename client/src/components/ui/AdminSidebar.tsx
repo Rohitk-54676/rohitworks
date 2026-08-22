@@ -2,6 +2,7 @@ import {
   Award,
   BriefcaseBusiness,
   ChevronLeft,
+  Code2,
   FolderKanban,
   GraduationCap,
   LayoutDashboard,
@@ -39,6 +40,11 @@ const navigation = [
     label: "Skills",
     path: "/admin/skills",
     icon: Sparkles,
+  },
+  {
+    label: "Technologies",
+    path: "/admin/technologies",
+    icon: Code2,
   },
   {
     label: "Education",

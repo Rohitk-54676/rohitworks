@@ -12,6 +12,7 @@ import DashboardPage from "./pages/admin/DashboardPage";
 import ProjectsPage from "./pages/admin/ProjectsPage";
 import ExperiencePage from "./pages/admin/ExperiencePage";
 import SkillsPage from "./pages/admin/SkillsPage";
+import TechnologiesPage from "./pages/admin/TechnologiesPage";
 import EducationPage from "./pages/admin/EducationPage";
 import AchievementsPage from "./pages/admin/AchievementsPage";
 import CertificationsPage from "./pages/admin/CertificationsPage";
@@ -22,6 +23,8 @@ import AdminLoginPage from "./pages/auth/AdminLoginPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Chatbot from "./components/common/Chatbot";
 import ProjectDetailsPage from "./pages/public/ProjectDetailsPage";
+import ProjectsListPage from "./pages/public/AllProjectsPage";
+import SkillsListPage from "./pages/public/SkillsListPage";
 
 function App() {
   return (
@@ -37,8 +40,16 @@ function App() {
           element={<HomePage/>}
         />
         <Route
+          path="/projects"
+          element={<ProjectsListPage />}
+        />
+        <Route
           path="/projects/:slug"
           element={<ProjectDetailsPage />}
+        />
+        <Route
+          path="/skills"
+          element={<SkillsListPage />}
         />
         {/* ================================
             ADMIN AUTHENTICATION
@@ -80,6 +91,11 @@ function App() {
             <Route
               path="/admin/skills"
               element={<SkillsPage/>}
+            />
+
+            <Route
+              path="/admin/technologies"
+              element={<TechnologiesPage />}
             />
 
             <Route

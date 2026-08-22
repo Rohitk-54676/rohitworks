@@ -4,13 +4,14 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/public/Navbar";
 import Hero from "../../components/public/Hero";
 import About from "../../components/public/About";
-import Skills from "../../components/public/Skills";
 import Projects from "../../components/public/Projects";
+import Skills from "../../components/public/Skills";
 import DevelopmentPresence from "../../components/public/DevelopmentPresence";
-import Experience from "../../components/public/Experience";
-import Education from "../../components/public/Education";
-import Achievements from "../../components/public/Achievements";
-import Certifications from "../../components/public/Certifications";
+
+import ProfessionalJourney from "../../components/public/ProfessionalJourney";
+
+import Services from "../../components/public/Services";
+
 import Contact from "../../components/public/Contact";
 import Footer from "../../components/public/Footer";
 
@@ -33,7 +34,10 @@ const HomePage = () => {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
     };
   }, [navigate]);
 
@@ -46,19 +50,16 @@ const HomePage = () => {
 
         <About />
 
-        <Skills />
+        <Services />
 
         <Projects />
 
+        <Skills />
+
         <DevelopmentPresence />
 
-        <Experience />
-
-        <Education />
-
-        <Achievements />
-
-        <Certifications />
+        {/* Professional Journey with toggle */}
+        <ProfessionalJourney />
 
         <Contact />
       </main>
