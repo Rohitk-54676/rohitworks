@@ -52,9 +52,7 @@ const Navbar = () => {
    * a successful long press.
    */
 
-  const handleLogoClick = (
-    event: React.MouseEvent<HTMLAnchorElement>
-  ) => {
+  const handleLogoClick = () => {
     if (longPressTimer.current === null) {
       return;
     }
