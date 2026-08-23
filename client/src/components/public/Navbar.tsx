@@ -6,13 +6,13 @@ import { useNavigate } from "react-router-dom";
 import ThemeToggle from "../common/ThemeToggle";
 
 const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Services", href: "#services" },
-  { label: "Projects", href: "#projects" },
-  { label: "Skills", href: "#skills" },
-  { label: "Development", href: "#development" },
-  { label: "Journey", href: "#journey" },
+  { label: "Home", href: "/#home" },
+  { label: "About", href: "/#about" },
+  { label: "Services", href: "/#services" },
+  { label: "Projects", href: "/#projects" },
+  { label: "Skills", href: "/#skills" },
+  { label: "Development", href: "/#development" },
+  { label: "Journey", href: "/#journey" },
 ];
 
 const Navbar = () => {
