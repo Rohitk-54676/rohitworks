@@ -27,18 +27,24 @@ const uploadResume = async (file) => {
   let newCloudinaryAsset;
 
   try {
-    const base64File = file.buffer.toString("base64");
+    const base64File =
+      file.buffer.toString("base64");
 
     const dataUri =
       `data:application/pdf;base64,${base64File}`;
 
     newCloudinaryAsset =
-      await cloudinary.uploader.upload(dataUri, {
-        resource_type: "raw",
-        folder: "portfolio/resume",
-        public_id: `resume-${Date.now()}.pdf`,
-        overwrite: false,
-      });
+      await cloudinary.uploader.upload(
+        dataUri,
+        {
+          resource_type: "raw",
+          type: "upload",
+          access_mode: "public",
+          folder: "portfolio/resume",
+          public_id: `resume-${Date.now()}`,
+          overwrite: false,
+        }
+      );
 
     const updateResult = await pool.query(
       `
@@ -62,7 +68,7 @@ const uploadResume = async (file) => {
           resume_public_id,
           current_focus,
           updated_at;
-      `,
+        `,
       [
         newCloudinaryAsset.secure_url,
         newCloudinaryAsset.public_id,

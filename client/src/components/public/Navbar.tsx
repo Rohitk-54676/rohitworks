@@ -123,7 +123,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`sticky top-0 z-50 border-b transition-colors duration-300 ${
+      className={`fixed top-0 right-0 left-0 z-50 border-b transition-colors duration-300 ${
         isScrolled
           ? "border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/80"
           : "border-transparent bg-white dark:bg-slate-950"
