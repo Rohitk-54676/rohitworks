@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import {
   Award,
   BriefcaseBusiness,
@@ -6,13 +8,20 @@ import {
   GraduationCap,
   LayoutDashboard,
   Link,
+  LogOut,
   Mail,
   Settings,
   Sparkles,
   Trophy,
   X,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+
+import {
+  NavLink,
+  useNavigate,
+} from "react-router-dom";
+
+import authService from "../../services/auth.service";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -81,6 +90,29 @@ export default function AdminSidebar({
   isOpen,
   onClose,
 }: AdminSidebarProps) {
+  const navigate = useNavigate();
+
+  const [isLoggingOut, setIsLoggingOut] =
+    useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+
+      await authService.logout();
+
+      onClose();
+
+      navigate("/admin/login", {
+        replace: true,
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <>
       {isOpen && (
@@ -94,15 +126,21 @@ export default function AdminSidebar({
 
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          isOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
         }`}
       >
+        {/* Header */}
         <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
           <div>
             <p className="text-sm font-semibold text-slate-900">
               Rohit Kumar
             </p>
-            <p className="text-xs text-slate-500">Portfolio Admin</p>
+
+            <p className="text-xs text-slate-500">
+              Portfolio Admin
+            </p>
           </div>
 
           <button
@@ -115,6 +153,7 @@ export default function AdminSidebar({
           </button>
         </div>
 
+        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-3">
           <div className="space-y-1">
             {navigation.map((item) => {
@@ -134,7 +173,11 @@ export default function AdminSidebar({
                     }`
                   }
                 >
-                  <Icon size={18} strokeWidth={1.8} />
+                  <Icon
+                    size={18}
+                    strokeWidth={1.8}
+                  />
+
                   <span>{item.label}</span>
                 </NavLink>
               );
@@ -142,6 +185,7 @@ export default function AdminSidebar({
           </div>
         </nav>
 
+        {/* Admin profile and logout */}
         <div className="border-t border-slate-200 p-3">
           <div className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200">
@@ -154,9 +198,30 @@ export default function AdminSidebar({
               <p className="truncate text-sm font-medium text-slate-900">
                 Admin
               </p>
-              <p className="text-xs text-slate-500">Authenticated</p>
+
+              <p className="text-xs text-slate-500">
+                Authenticated
+              </p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <LogOut
+              size={18}
+              strokeWidth={1.8}
+            />
+
+            <span>
+              {isLoggingOut
+                ? "Logging out..."
+                : "Logout"}
+            </span>
+          </button>
         </div>
       </aside>
     </>
