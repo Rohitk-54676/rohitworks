@@ -81,10 +81,21 @@ const getLeetCodeActivity = async (
   next
 ) => {
   try {
-    const currentYear = new Date().getFullYear();
+    const currentYear =
+      new Date().getFullYear();
+
+    const requestedYear =
+      Number(req.query.year);
+
+    const year =
+      Number.isInteger(requestedYear) &&
+      requestedYear >= 2000 &&
+      requestedYear <= currentYear
+        ? requestedYear
+        : currentYear;
 
     const activity =
-    await leetcodeService.getCalendar(currentYear);
+      await leetcodeService.getCalendar(year);
 
     return res.status(200).json({
       success: true,
