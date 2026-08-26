@@ -15,23 +15,19 @@ const navLinks = [
   { label: "Journey", href: "/#journey" },
 ];
 
+const NAV_HEIGHT_PX = 72;
+
 const Navbar = () => {
   const navigate = useNavigate();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
 
-  const longPressTimer = useRef<
-    ReturnType<typeof setTimeout> | null
-  >(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleLinkClick = () => setIsMenuOpen(false);
-
-  /*
-   * Mobile admin shortcut.
-   * Hold the R logo for 1 second.
-   */
 
   const handleLogoTouchStart = () => {
     longPressTimer.current = setTimeout(() => {
@@ -47,246 +43,231 @@ const Navbar = () => {
     }
   };
 
-  /*
-   * Prevent the normal logo click after
-   * a successful long press.
-   */
+  const scrollToSection = (id: string) => {
+    const isHome = window.location.pathname === "/";
 
-  const handleLogoClick = () => {
-    if (longPressTimer.current === null) {
-      return;
+    const doScroll = () => {
+      const element = document.getElementById(id);
+      if (!element) return;
+
+      const top =
+        element.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT_PX;
+
+      window.scrollTo({ top, behavior: "smooth" });
+    };
+
+    if (!isHome) {
+      navigate("/");
+      window.setTimeout(doScroll, 150);
+    } else {
+      window.setTimeout(doScroll, 50);
     }
+  };
 
+  const handleLogoClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    if (longPressTimer.current !== null) return;
     handleLinkClick();
+    scrollToSection("home");
+  };
+
+  const handleNavClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    event.preventDefault();
+    handleLinkClick();
+    scrollToSection(href.split("#")[1]);
   };
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 8);
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 24);
     handleScroll();
-
-    window.addEventListener(
-      "scroll",
-      handleScroll,
-      { passive: true }
-    );
-
-    return () => {
-      window.removeEventListener(
-        "scroll",
-        handleScroll
-      );
-    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
-    const sectionIds = navLinks.map((link) =>
-      link.href.replace("#", "")
-    );
+    const sectionIds = navLinks.map((link) => link.href.split("#")[1]);
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
         });
       },
-      {
-        rootMargin: "-45% 0px -50% 0px",
-        threshold: 0,
-      }
+      { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
     );
 
     sectionIds.forEach((id) => {
       const element = document.getElementById(id);
-
-      if (element) {
-        observer.observe(element);
-      }
+      if (element) observer.observe(element);
     });
 
     return () => observer.disconnect();
   }, []);
 
-  /*
-   * Cleanup long-press timer.
-   */
-
   useEffect(() => {
     return () => {
-      if (longPressTimer.current) {
-        clearTimeout(longPressTimer.current);
-      }
+      if (longPressTimer.current) clearTimeout(longPressTimer.current);
     };
   }, []);
 
   return (
-    <nav
-      className={`fixed top-0 right-0 left-0 z-50 border-b transition-colors duration-300 ${
-        isScrolled
-          ? "border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/80"
-          : "border-transparent bg-white dark:bg-slate-950"
-      }`}
-    >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[999] flex justify-center">
+      <div
+        className={`relative isolate flex flex-col items-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isScrolled ? "mt-3 w-[94%] max-w-[720px]" : "mt-0 w-full"
+        }`}
+      >
+        {/* Ambient glow — a separate layer BEHIND the nav, so blur can
+            bleed past the pill's own edges instead of being clipped by
+            the nav's own overflow-hidden. Only relevant once shrunk. */}
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute -inset-2 -z-10 rounded-full blur-xl"
+          style={{ backgroundColor: "var(--accent)" }}
+          animate={{
+            opacity: isScrolled ? (isHovered ? 0.35 : 0.15) : 0,
+          }}
+          transition={{ duration: 0.4 }}
+        />
 
-        <a
-          href="#home"
-          onClick={handleLogoClick}
-          onTouchStart={handleLogoTouchStart}
-          onTouchEnd={handleLogoTouchEnd}
-          onTouchCancel={handleLogoTouchEnd}
-          className="flex h-9 w-9 select-none items-center justify-center rounded-full bg-[var(--accent)] text-sm font-bold text-white transition-transform hover:scale-105"
-          aria-label="Go to home"
+        {/* The pill itself — logo, links, actions only. No dropdown lives
+            in here, so it can never be forced into an oval/egg shape. */}
+        <nav
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className={`pointer-events-auto w-full overflow-hidden border transition-[border-radius,background-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isScrolled
+              ? "rounded-full border-slate-200 bg-white/90 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/90"
+              : "rounded-none border-transparent bg-white dark:bg-slate-950"
+          }`}
         >
-          R
-        </a>
-
-        {/* Desktop navigation */}
-
-        <div className="hidden items-center gap-1 lg:flex">
-          {navLinks.map((link) => {
-            const isActive =
-              activeSection ===
-              link.href.replace("#", "");
-
-            return (
-              <a
-                key={link.href}
-                href={link.href}
-                className="relative px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="navbar-active-pill"
-                    className="absolute inset-0 rounded-full bg-slate-100 dark:bg-slate-800"
-                    transition={{
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 32,
-                    }}
-                  />
-                )}
-
-                <span
-                  className={`relative z-10 ${
-                    isActive
-                      ? "text-slate-950 dark:text-white"
-                      : ""
-                  }`}
-                >
-                  {link.label}
-                </span>
-              </a>
-            );
-          })}
-        </div>
-
-        {/* Desktop actions */}
-
-        <div className="hidden items-center gap-3 lg:flex">
-          <ThemeToggle />
-
-          <a
-            href="#contact"
-            className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-slate-950"
+          <div
+            className={`mx-auto flex items-center justify-between transition-[height,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              isScrolled ? "h-12 px-4" : "h-[72px] px-4 sm:px-6 lg:px-8"
+            }`}
           >
-            Contact
-          </a>
-        </div>
+            {/* Logo */}
+            <a
+              href="/#home"
+              onClick={handleLogoClick}
+              onTouchStart={handleLogoTouchStart}
+              onTouchEnd={handleLogoTouchEnd}
+              onTouchCancel={handleLogoTouchEnd}
+              className={`flex shrink-0 select-none items-center justify-center rounded-full bg-[var(--accent)] font-bold text-white transition-all duration-300 hover:scale-105 ${
+                isScrolled ? "h-7 w-7 text-xs" : "h-9 w-9 text-sm"
+              }`}
+              aria-label="Go to home"
+            >
+              R
+            </a>
 
-        {/* Mobile actions */}
+            {/* Desktop navigation */}
+            <div className="hidden items-center gap-1 lg:flex">
+              {navLinks.map((link) => {
+                const isActive = activeSection === link.href.split("#")[1];
 
-        <div className="flex items-center gap-2 lg:hidden">
-          <ThemeToggle />
-
-          <button
-            type="button"
-            onClick={() =>
-              setIsMenuOpen(
-                (previous) => !previous
-              )
-            }
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-            aria-label={
-              isMenuOpen
-                ? "Close navigation menu"
-                : "Open navigation menu"
-            }
-            aria-expanded={isMenuOpen}
-          >
-            {isMenuOpen ? (
-              <X size={22} />
-            ) : (
-              <Menu size={22} />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile navigation */}
-
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{
-              height: 0,
-              opacity: 0,
-            }}
-            animate={{
-              height: "auto",
-              opacity: 1,
-            }}
-            exit={{
-              height: 0,
-              opacity: 0,
-            }}
-            transition={{
-              duration: 0.25,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            className="overflow-hidden border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 lg:hidden"
-          >
-            <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4">
-              {navLinks.map(
-                (link, index) => (
-                  <motion.a
+                return (
+                  <a
                     key={link.href}
                     href={link.href}
-                    onClick={handleLinkClick}
-                    initial={{
-                      opacity: 0,
-                      x: -12,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      x: 0,
-                    }}
-                    transition={{
-                      duration: 0.2,
-                      delay: index * 0.03,
-                    }}
-                    className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
+                    onClick={(event) => handleNavClick(event, link.href)}
+                    className={`relative rounded-full font-medium text-slate-600 transition-all duration-300 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white ${
+                      isScrolled ? "px-2.5 py-1.5 text-xs" : "px-3 py-2 text-sm"
+                    }`}
                   >
-                    {link.label}
-                  </motion.a>
-                )
-              )}
+                    {isActive && (
+                      <motion.span
+                        layoutId="navbar-active-pill"
+                        className="absolute inset-0 rounded-full bg-slate-100 dark:bg-slate-800"
+                        transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                      />
+                    )}
+                    <span
+                      className={`relative z-10 ${
+                        isActive ? "text-slate-950 dark:text-white" : ""
+                      }`}
+                    >
+                      {link.label}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
 
+            {/* Desktop actions */}
+            <div className="hidden shrink-0 items-center gap-3 lg:flex">
+              <ThemeToggle />
               <a
-                href="#contact"
-                onClick={handleLinkClick}
-                className="mt-3 rounded-md bg-slate-950 px-4 py-2.5 text-center text-sm font-medium text-white dark:bg-white dark:text-slate-950"
+                href="/#contact"
+                onClick={(event) => handleNavClick(event, "/#contact")}
+                className={`rounded-full bg-slate-950 font-medium text-white transition-all duration-300 hover:opacity-90 dark:bg-white dark:text-slate-950 ${
+                  isScrolled ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"
+                }`}
               >
                 Contact
               </a>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
+
+            {/* Mobile actions */}
+            <div className="flex shrink-0 items-center gap-2 lg:hidden">
+              <ThemeToggle />
+
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen((previous) => !previous)}
+                className="pointer-events-auto relative z-10 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={isMenuOpen}
+              >
+                {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Mobile dropdown — a completely separate card below the pill,
+            with its own normal rounded-2xl corners. It is NOT a child of
+            <nav>, so it can never inherit the pill's rounded-full clip. */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="pointer-events-auto mt-2 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950 lg:hidden"
+            >
+              <div className="flex flex-col gap-1 px-4 py-4">
+                {navLinks.map((link, index) => (
+                  <motion.a
+                    key={link.href}
+                    href={link.href}
+                    onClick={(event) => handleNavClick(event, link.href)}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.2, delay: index * 0.03 }}
+                    className="relative z-10 rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
+                  >
+                    {link.label}
+                  </motion.a>
+                ))}
+
+                <a
+                  href="/#contact"
+                  onClick={(event) => handleNavClick(event, "/#contact")}
+                  className="relative z-10 mt-3 rounded-md bg-slate-950 px-4 py-2.5 text-center text-sm font-medium text-white dark:bg-white dark:text-slate-950"
+                >
+                  Contact
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   );
 };
 
