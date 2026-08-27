@@ -81,11 +81,9 @@ const getLeetCodeActivity = async (
   next
 ) => {
   try {
-    const currentYear =
-      new Date().getFullYear();
+    const currentYear = new Date().getFullYear();
 
-    const requestedYear =
-      Number(req.query.year);
+    const requestedYear = Number(req.query.year);
 
     const year =
       Number.isInteger(requestedYear) &&

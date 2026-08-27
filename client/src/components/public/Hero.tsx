@@ -1,14 +1,42 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowDownRight, Download, MapPin } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { usePublicSocialLinks } from "../../hooks/useSocialLinks";
+import SocialIcon from "../common/SocialIcon";
 import WebGLBackground from "../three/WebGLBackground";
 import SilentBoundary from "../three/SilentBoundary";
 
 const Hero = () => {
   const { data: settings, isLoading, isError } = useSiteSettings();
+  const { data: socialLinks } = usePublicSocialLinks();
   const [isDownloading, setIsDownloading] = useState(false);
+
+  // Mouse-tracked 3D tilt for the profile photo frame
+  const frameRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
+    stiffness: 150,
+    damping: 20,
+  });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), {
+    stiffness: 150,
+    damping: 20,
+  });
+
+  const handleFrameMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const rect = frameRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    mouseX.set((event.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((event.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleFrameMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   if (isLoading) {
     return (
@@ -89,6 +117,12 @@ const Hero = () => {
       setIsDownloading(false);
     }
   };
+
+  // Top 4 active social links, ordered exactly as configured in the admin panel
+  const topSocialLinks = (socialLinks ?? [])
+    .filter((link) => link.is_active)
+    .sort((a, b) => a.display_order - b.display_order)
+    .slice(0, 4);
 
   return (
     <section
@@ -217,38 +251,105 @@ const Hero = () => {
               Contact Me
             </a>
           </motion.div>
+
+          {/* Top 4 social links, ordered exactly as set in the admin panel */}
+          {topSocialLinks.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.85 }}
+              className="mt-8 flex items-center gap-3"
+            >
+              {topSocialLinks.map((link, index) => (
+                <motion.a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={link.platform}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.9 + index * 0.06 }}
+                  whileHover={{ y: -3, scale: 1.08 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] dark:border-slate-700 dark:text-slate-400"
+                >
+                  <SocialIcon platform={link.platform} size={17} />
+                </motion.a>
+              ))}
+            </motion.div>
+          )}
         </div>
 
-        {/* Profile image */}
+        {/* Profile image — styled frame with animated gradient ring,
+            floating ambient blob, and a subtle mouse-tracked 3D tilt */}
         <motion.div
           className="relative mx-auto w-full max-w-md lg:ml-auto lg:max-w-none"
-          initial={{ opacity: 0, scale: 0.9, rotate: -1.5 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          style={{ perspective: 1000 }}
         >
-          <div className="absolute -inset-4 rounded-2xl border border-slate-200 sm:-inset-6 dark:border-slate-700" />
+          {/* Ambient floating blobs behind the frame, purely decorative */}
+          <motion.div
+            aria-hidden="true"
+            className="absolute -right-6 -top-6 h-40 w-40 rounded-full opacity-30 blur-3xl"
+            style={{ backgroundColor: "var(--accent)" }}
+            animate={{ y: [0, -16, 0], x: [0, 10, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            aria-hidden="true"
+            className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-slate-400/20 blur-3xl dark:bg-slate-500/10"
+            animate={{ y: [0, 14, 0], x: [0, -8, 0] }}
+            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
 
-          <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
-            {settings.profile_image_url ? (
-              <motion.img
-                src={settings.profile_image_url}
-                alt={
-                  settings.name
-                    ? `${settings.name} professional profile`
-                    : "Rohit Kumar professional profile"
-                }
-                initial={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                className="h-full w-full object-cover"
+          <div
+            ref={frameRef}
+            onMouseMove={handleFrameMouseMove}
+            onMouseLeave={handleFrameMouseLeave}
+            className="relative"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            <motion.div
+              style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+              className="relative"
+            >
+              {/* Animated gradient ring frame */}
+              <div
+                className="absolute -inset-1.5 rounded-[2rem] opacity-80 blur-[2px]"
+                style={{
+                  background: `conic-gradient(from 0deg, var(--accent), transparent, var(--accent))`,
+                }}
               />
-            ) : (
-              <div className="flex h-full items-center justify-center p-8 text-center">
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Profile image will appear here.
-                </p>
+
+              <div className="relative rounded-[2rem] bg-white p-1.5 dark:bg-slate-950">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-[1.6rem] bg-slate-100 dark:bg-slate-900">
+                  {settings.profile_image_url ? (
+                    <motion.img
+                      src={settings.profile_image_url}
+                      alt={
+                        settings.name
+                          ? `${settings.name} professional profile`
+                          : "Rohit Kumar professional profile"
+                      }
+                      initial={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+                      animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                      transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      className="h-full w-full object-cover"
+                      style={{ transform: "translateZ(20px)" }}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center p-8 text-center">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Profile image will appear here.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            </motion.div>
           </div>
 
           <motion.div

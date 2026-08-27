@@ -83,3 +83,15 @@ export const useDeleteSocialLink = () => {
     },
   });
 };
+/**
+ * Public-facing variant — active links only, for the homepage/footer.
+ * Deliberately separate from useSocialLinks() above (which fetches
+ * includeInactive=true for the admin panel) so a disabled link can
+ * never leak onto the public site.
+ */
+export const usePublicSocialLinks = () => {
+  return useQuery({
+    queryKey: ["social-links", "public"],
+    queryFn: () => socialLinkService.getSocialLinks(false),
+  });
+};

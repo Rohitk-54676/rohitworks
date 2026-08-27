@@ -108,16 +108,18 @@ const Projects = () => {
           </Link>
         </Reveal>
 
-        {/* Projects */}
-        <RevealGroup className="mt-12 grid gap-6 lg:grid-cols-2" stagger={0.08}>
+        {/* Projects — items-stretch ensures every card fills the row height;
+            h-full on RevealItem/article chains that stretch down to content. */}
+        <RevealGroup className="mt-12 grid items-stretch gap-6 lg:grid-cols-2" stagger={0.08}>
           {featuredProjects.map((project) => (
-            <RevealItem key={project.id}>
+            <RevealItem key={project.id} className="h-full">
               <article
                 onClick={() => navigate(`/projects/${project.slug}`)}
-                className="group cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-slate-950 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-white"
+                className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-slate-950 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-white"
               >
-                {/* Thumbnail */}
-                <div className="aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
+                {/* Thumbnail — fixed aspect ratio keeps this section identical
+                    across all cards regardless of image presence/size */}
+                <div className="aspect-[16/10] shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-800">
                   {project.thumbnail_url ? (
                     <img
                       src={project.thumbnail_url}
@@ -133,8 +135,9 @@ const Projects = () => {
                   )}
                 </div>
 
-                {/* Content */}
-                <div className="p-6 sm:p-7">
+                {/* Content — flex-1 + flex-col makes this section grow to
+                    fill remaining card height, whatever that ends up being */}
+                <div className="flex flex-1 flex-col p-6 sm:p-7">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
@@ -152,7 +155,9 @@ const Projects = () => {
                     />
                   </div>
 
-                  <p className="mt-4 leading-7 text-slate-600 dark:text-slate-400">
+                  {/* line-clamp caps description length so one long blurb
+                      can't blow out a card's height beyond its siblings */}
+                  <p className="mt-4 line-clamp-3 leading-7 text-slate-600 dark:text-slate-400">
                     {project.short_description}
                   </p>
 
@@ -169,8 +174,12 @@ const Projects = () => {
                     </div>
                   )}
 
+                  {/* mt-auto pins this row to the bottom of the card no
+                      matter how much (or little) content sits above it —
+                      this is what actually equalizes the visual footer
+                      position across cards of differing content length */}
                   {(project.github_url || project.live_url) && (
-                    <div className="mt-7 flex flex-wrap gap-5">
+                    <div className="mt-auto flex flex-wrap gap-5 pt-7">
                       {project.github_url && (
                         <a
                           href={project.github_url}
